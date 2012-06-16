@@ -29,9 +29,20 @@ def public_posts(site)
   call_api(SITE, site, PUBLIC_POSTS)
 end
 
+
+# Error class for not implemented methods
+class NotImplementedException < StandardError
+end
+
+class TooManyRedirectsError < StandardError
+end
+
+class LoadRessourceError < StandardError
+end
+
 # fetch method based on the Net::HTTP documentation
 def fetch(uri_str, limit = 10)
-  raise ArgumentError, 'too many HTTP redirects' if limit == 0
+  raise TooManyRedirectsError, 'too many HTTP redirects' if limit == 0
 
   response = Net::HTTP.get_response(URI(uri_str))
 
@@ -75,19 +86,25 @@ class Post
     @videos = data["media"]["videos"]
   end
 
+  def save_media(path, uri)
+    response = fetch(uri)
+
+    raise LoadRessourceError unless [200,201].include? response.code.to_i
+
+    FileUtils.mkdir_p path unless File.exists? path
+    File.open("#{path}/#{uri.split("/")[-2..-1].join}", "wb") { |f| f << response.body }
+  end
+
   def fetch_images
-    #stub
-    raise NotImplementedException
+    @images.each{|image| save_media("images", image) }
   end
 
   def fetch_audio
-    #stub
-    raise NotImplementedException
+    @audio_files.each{|audio| save_media("audio_files", audio) }
   end
 
   def fetch_videos
-    #stub
-    raise NotImplementedException
+    @videos.each{|video| save_media("videos", video) }
   end
 
   def convert
@@ -134,9 +151,11 @@ def main
 
   pp posts
 
-  # posts.convert
-  # posts.fetch_media
-  # posts.save
+  posts.each{| post| 
+#    post.convert
+    post.fetch_media
+#    post.save
+  }
 
 end
 
