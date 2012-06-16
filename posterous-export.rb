@@ -6,8 +6,8 @@ require 'net/http'
 
 require 'posterous'
 Posterous.config = {
-  'username'  => 'nancibonfim',
-  'password'  => 'nanciposter0us_export'
+  'username'  => '',
+  'password'  => ''
 }
 
 include Posterous
