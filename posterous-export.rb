@@ -75,12 +75,9 @@ class Post
     # TODO: test with a post with comments
     @comments = data["comments"]
     @tags = if data["tags"].nil? then [] else data["tags"].map {|tag| tag["name"] } end
-    # TODO: test with a post with multiple images
-    @images = data["media"]["images"].map {|image| image.values.map{|value| value["url"] } }[0] || Array.new
-
-    # TODO: test with audio files and videos
-    @audio_files = data["media"]["audio_files"]
-    @videos = data["media"]["videos"]
+    @images = data["media"]["images"].map {|item| item.values.map{|value| value["url"] } }.flatten || Array.new
+    @audio_files = data["media"]["audio_files"].map{|value| value["url"] }
+    @videos = data["media"]["videos"].map{|value| value["url"] }
   end
 
   def save_media(path, uri)
