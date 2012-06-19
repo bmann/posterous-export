@@ -3,6 +3,7 @@
 require 'rubygems'
 require 'json'
 require 'net/http'
+require 'date'
 
 require 'posterous'
 Posterous.config = {
@@ -56,10 +57,6 @@ def fetch(uri_str, limit = 10)
   end
 end
 
-# Error class for not implemented methods
-class NotImplementedException < StandardError
-end
-
 # Class to hold the post information
 class Post
   attr_reader :title, :slug, :date, :body, :comments, :tags, :images, :videos,  :audio_files
@@ -74,10 +71,10 @@ class Post
     @body = data["body_full"]
     @title = data["title"]
     @slug = data["slug"]
-    @date = data["display_date"]
+    @date = DateTime.parse(data["display_date"])
     # TODO: test with a post with comments
     @comments = data["comments"]
-    @tags = data["tags"].map {|tag| tag["name"] } unless data["tags"].nil?
+    @tags = if data["tags"].nil? then [] else data["tags"].map {|tag| tag["name"] } end
     # TODO: test with a post with multiple images
     @images = data["media"]["images"].map {|image| image.values.map{|value| value["url"] } }[0] || Array.new
 
@@ -92,7 +89,7 @@ class Post
     raise LoadRessourceError unless [200,201].include? response.code.to_i
 
     FileUtils.mkdir_p path unless File.exists? path
-    File.open("#{path}/#{uri.split("/")[-2..-1].join}", "wb") { |f| f << response.body }
+    File.open("#{path}/#{uri.split("/")[-2..-1].join("_")}", "wb") { |f| f << response.body }
   end
 
   def fetch_images
@@ -113,8 +110,20 @@ class Post
   end
 
   def save
-    #stub
-    raise NotImplementedException
+    data = <<-EOS
+---
+layout: post
+title: #{@title}
+date: #{@date.strftime("%F %H:%M")}
+categories:#{@tags.reduce("") {|acc, tag| acc += "\n- #{tag}"}}
+---
+
+#{@body}
+EOS
+
+    File.open("#{@date.strftime("%F")}-#{@slug}.markdown", "w") {|file|
+      file << data
+    }
   end
 
   def fetch_media
@@ -153,8 +162,8 @@ def main
 
   posts.each{| post| 
 #    post.convert
-    post.fetch_media
-#    post.save
+#    post.fetch_media
+    post.save
   }
 
 end
