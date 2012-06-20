@@ -27,7 +27,20 @@ end
 
 # little API wrapper
 def public_posts(site)
-  call_api(SITE, site, PUBLIC_POSTS)
+  response = call_api(SITE, site, PUBLIC_POSTS)
+  if [200,201].include? response.code.to_i
+    pages = Array.new
+
+    response.header["x-total-pages"].to_i.times {|page|
+      #Posterous API uses index starting at one
+      pages[page] = call_api(SITE, site, PUBLIC_POSTS, "?page=#{page + 1}").body
+    }
+    return pages
+  else
+    #FIXME: we can show a better information to the user
+      return nil
+  end
+
 end
 
 
@@ -160,17 +173,21 @@ def main
     pp "Posts from markdownexport: #{@site.posts}"
   rescue Posterous::Connection::ConnectionError
     # fail back to unauthenticated access
-    res = public_posts("markdownexport")
-    ruby_data = JSON.parse(res.body)
-    posts = ruby_data.map {|entry| Post.new(entry) }
+    pages = public_posts("bmcasides")
+    pages = pages.map {|page|
+      ruby_data = JSON.parse(page)
+      pp ruby_data
+      ruby_data.map {|entry| Post.new(entry) }
+    }
   end
 
-  posts.each{| post| 
-    post.convert
-    post.fetch_media
-    post.save
+  pages.each{|page|
+    page.each{|post| 
+      post.convert
+      post.fetch_media
+      post.save
+    }
   }
-
 end
 
 
