@@ -102,8 +102,18 @@ class Post
   end
 
   def convert
-    #stub
-    raise NotImplementedException
+    #TODO: convert audio and video links
+    @body = @body.gsub(%r(<a href="http://[^.]*.(posterous.com/getfile/files.posterous.com/([^.]*\.))([^"]*)"(.*)src="http://.*\1([^"]*)")) {|md| #" this is a little workaround for the Ruby mode of Emacs
+      #FIXME: this is a workaround for ruby 1.8.7 (2011-12-28 patchlevel 357) [x86_64-linux]
+      #the String#split breaks the global variables
+      three = $3
+      four = $4
+      five = $5
+      new_name = $2.split("/")[-2..-1].join("_")
+      data = <<-EOS
+<a href="./images/#{new_name}#{three}"#{four}src="./images/#{new_name}#{five}"
+EOS
+    }
   end
 
   def save
@@ -155,11 +165,9 @@ def main
     posts = ruby_data.map {|entry| Post.new(entry) }
   end
 
-  pp posts
-
   posts.each{| post| 
-#    post.convert
-#    post.fetch_media
+    post.convert
+    post.fetch_media
     post.save
   }
 
