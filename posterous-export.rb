@@ -4,6 +4,8 @@ require 'rubygems'
 require 'json'
 require 'net/http'
 require 'date'
+require 'nokogiri'
+
 
 require 'posterous'
 Posterous.config = {
@@ -127,6 +129,18 @@ class Post
 <a href="./images/#{new_name}#{three}"#{four}src="./images/#{new_name}#{five}"
 EOS
     }
+    html_doc = Nokogiri::HTML(@body)
+
+    videos = html_doc.css("div.p_video_embed")
+    videos.map {|video|
+      #TODO: change the divs content
+
+    }
+    audios = html_doc.css("div.p_audio_embed")
+    audios.map {|audio|
+      #TODO: change the divs content
+
+    }
   end
 
   def save
@@ -173,10 +187,9 @@ def main
     pp "Posts from markdownexport: #{@site.posts}"
   rescue Posterous::Connection::ConnectionError
     # fail back to unauthenticated access
-    pages = public_posts("bmcasides")
+    pages = public_posts("markdownexport")
     pages = pages.map {|page|
       ruby_data = JSON.parse(page)
-      pp ruby_data
       ruby_data.map {|entry| Post.new(entry) }
     }
   end
