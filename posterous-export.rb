@@ -13,10 +13,25 @@ Posterous.config = {
   'password'  => ''
 }
 
+
+# ---------------
+# Edit below to configure
+# ---------------
+
+SITE = "markdownexport"		# SHORTNAMEOFYOURSITE.posterous.com
+EXPORT_PATH = "_posts"		# /path/to/export/folder -- local directory "_posts" by default
+IMAGE_PATH = "images"		# /path/to/images/folder -- local directory "images" by default
+IMAGE_REL_PATH = "/images"	# relative path to images folder which is how images & other media will be linked to
+EXTENSION = "markdown"		# file extension for posts - defaults to .markdown, could also be .md
+
+#
+# ---------------
+#
+
 include Posterous
 
 POSTEROUS_URL = "http://posterous.com/api/2/"
-SITE = "sites/"
+SITE_PATH = "sites/"
 PUBLIC_POSTS = "/posts/public"
 
 #debug
@@ -29,7 +44,7 @@ end
 
 # little API wrapper
 def public_posts(site)
-  response = call_api(SITE, site, PUBLIC_POSTS)
+  response = call_api(SITE_PATH, site, PUBLIC_POSTS)
   if [200,201].include? response.code.to_i
     pages = Array.new
 
@@ -126,7 +141,7 @@ class Post
       five = $5
       new_name = $2.split("/")[-2..-1].join("_")
       data = <<-EOS
-<a href="./images/#{new_name}#{three}"#{four}src="./images/#{new_name}#{five}"
+<a href="#{IMAGE_REL_PATH}/#{new_name}#{three}"#{four}src="#{IMAGE_REL_PATH}/#{new_name}#{five}"
 EOS
     }
     html_doc = Nokogiri::HTML(@body)
@@ -155,7 +170,7 @@ categories:#{@tags.reduce("") {|acc, tag| acc += "\n- #{tag}"}}
 #{@body}
 EOS
 
-    File.open("#{@date.strftime("%F")}-#{@slug}.markdown", "w") {|file|
+    File.open("#{EXPORT_PATH}/#{@date.strftime("%F")}-#{@slug}.#{EXTENSION}", "w") {|file|
       file << data
     }
   end
@@ -180,14 +195,14 @@ def main
 
     pp "Posts: #{@user.posts}"
 
-    @site = Site.find("markdownexport")
+    @site = Site.find(SITE)
 
     pp @site
 
-    pp "Posts from markdownexport: #{@site.posts}"
+    pp "Posts from #{SITE} #{@site.posts}"
   rescue Posterous::Connection::ConnectionError
     # fail back to unauthenticated access
-    pages = public_posts("markdownexport")
+    pages = public_posts(SITE)
     pages = pages.map {|page|
       ruby_data = JSON.parse(page)
       ruby_data.map {|entry| Post.new(entry) }
