@@ -50,8 +50,9 @@ def public_posts(site)
 
     response.header["x-total-pages"].to_i.times {|page|
       #Posterous API uses index starting at one
-      pages[page] = call_api(SITE, site, PUBLIC_POSTS, "?page=#{page + 1}").body
+      pages[page] = call_api(SITE_PATH, site, PUBLIC_POSTS, "?page=#{page + 1}").body
     }
+
     return pages
   else
     #FIXME: we can show a better information to the user
