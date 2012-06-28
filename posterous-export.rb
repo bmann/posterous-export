@@ -21,7 +21,7 @@ Posterous.config = {
 SITE = "markdownexport"		# SHORTNAMEOFYOURSITE.posterous.com
 EXPORT_PATH = "_posts"		# /path/to/export/folder -- local directory "_posts" by default
 IMAGE_PATH = "images"		# /path/to/images/folder -- local directory "images" by default
-IMAGE_REL_PATH = "/images"	# relative path to images folder which is how images & other media will be linked to
+IMAGE_REL_PATH = "./images"	# relative path to images folder which is how images & other media will be linked to
 EXTENSION = "markdown"		# file extension for posts - defaults to .markdown, could also be .md
 
 #
@@ -171,6 +171,7 @@ categories:#{@tags.reduce("") {|acc, tag| acc += "\n- #{tag}"}}
 #{@body}
 EOS
 
+    FileUtils.mkdir_p EXPORT_PATH unless File.exists? EXPORT_PATH
     File.open("#{EXPORT_PATH}/#{@date.strftime("%F")}-#{@slug}.#{EXTENSION}", "w") {|file|
       file << data
     }
