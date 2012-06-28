@@ -21,7 +21,7 @@ Posterous.config = {
 SITE = "markdownexport"		# SHORTNAMEOFYOURSITE.posterous.com
 EXPORT_PATH = "_posts"		# /path/to/export/folder -- local directory "_posts" by default
 IMAGE_PATH = "images"		# /path/to/images/folder -- local directory "images" by default
-IMAGE_REL_PATH = "./images"	# relative path to images folder which is how images & other media will be linked to
+IMAGE_REL_PATH = "/images"	# absolute path from webroot to images folder which is how images & other media will be linked to
 EXTENSION = "markdown"		# file extension for posts - defaults to .markdown, could also be .md
 
 #
