@@ -149,6 +149,9 @@ EOS
     }
     html_doc = Nokogiri::HTML(@body)
 
+    # encloses an HTML p tag within newlines
+    html_doc.css("p").each {|par| par.replace("\n#{par.inner_html}\n")}
+    
     videos = html_doc.css("div.p_video_embed")
     videos.map {|video|
       #TODO: change the divs content
@@ -159,6 +162,9 @@ EOS
       #TODO: change the divs content
 
     }
+
+    @body = html_doc.css("body").inner_html
+
   end
 
   def save
@@ -216,7 +222,7 @@ def main
   pages.each{|page|
     page.each{|post| 
       post.convert
-      post.fetch_media
+#XXX      post.fetch_media
       post.save
     }
   }
