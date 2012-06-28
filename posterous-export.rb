@@ -121,15 +121,17 @@ class Post
   end
 
   def fetch_images
-    @images.each{|image| save_media("images", image) }
+    @images.each{|image| save_media(IMAGE_PATH, image) }
   end
 
   def fetch_audio
-    @audio_files.each{|audio| save_media("audio_files", audio) }
+    # NOTE: using only the images folder
+    @audio_files.each{|audio| save_media(IMAGE_PATH, audio) }
   end
 
   def fetch_videos
-    @videos.each{|video| save_media("videos", video) }
+    # NOTE: using only the images folder
+    @videos.each{|video| save_media(IMAGE_PATH, video) }
   end
 
   def convert
