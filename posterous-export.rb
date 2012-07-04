@@ -134,6 +134,23 @@ class Post
     @videos.each{|video| save_media(IMAGE_PATH, video) }
   end
 
+  def convert_list(list_doc, depth, kind)
+    list_doc.children.each {|item|
+      item.remove if !item.element? && item.content == "\n"
+    }
+
+    list_doc.children.select{|child| child.name == "li"}.each_with_index {|li, index|
+      li.children[0].content = "#{" " * 4 * depth}#{kind == :ol ? ((index + 1).to_s + '.') : '*'} #{li.children[0].content.chomp}\n"
+      if li.children.size > 1
+        convert_list(li.children[1], depth + 1, li.children[1].name.to_sym)
+      end
+
+      li.replace("#{li.inner_html.chomp}")
+    }
+
+    list_doc.replace("#{list_doc.inner_html.chomp}")
+  end
+
   def convert
     #TODO: convert audio and video links
     @body = @body.gsub(%r(<a href="http://[^.]*.(posterous.com/getfile/files.posterous.com/([^.]*\.))([^"]*)"(.*)src="http://.*\1([^"]*)")) {|md| #" this is a little workaround for the Ruby mode of Emacs
@@ -159,51 +176,19 @@ EOS
 
     # convert unordered lists
     html_doc.css("body > ul").each {|ul|
-      #remove newlines
-      ul.children.each {|item|
-        item.remove if !item.element? && item.content == "\n"
-      }
-
-      # for sub-lists
-      ul.css("ul").each {|sublist|
-        sublist.children.each {|item|
-          if item.element?
-            item.replace("    * #{item.inner_html}\n")
-          else
-            item.remove
-          end
-        }
-        sublist.replace("#{sublist.inner_html.chomp}")
-      }
-
-      ul.css("li").each {|li| li.replace("* #{li.inner_html}\n") }
-      ul.replace("#{ul.inner_html}")
+      convert_list(ul, 0, :ul)
     }
 
     #convert ordered lists
     html_doc.css("body > ol").each {|ol|
-      #remove newlines
-      ol.children.each {|item|
-        item.remove if !item.element? && item.content == "\n"
-      }
-
-      # for sub-lists
-      ol.css("ol").each {|sublist|
-        index = 0
-        sublist.children.each {|item|
-          if item.element?
-            index += 1
-            item.replace("    #{index}. #{item.inner_html}\n")
-          else
-            item.remove
-          end
-        }
-        sublist.replace("#{sublist.inner_html.chomp}")
-      }
-
-      ol.css("li").each_with_index {|li, index| li.replace("#{index}. #{li.inner_html}\n") }
-      ol.replace("#{ol.inner_html.chomp}")
+      convert_list(ol, 0, :ol)
     }
+
+    #TODO: text formatting
+
+    #TODO: links
+
+    #TODO: blockquote, pre
 
     videos = html_doc.css("div.p_video_embed")
     videos.map {|video|
