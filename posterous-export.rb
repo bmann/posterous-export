@@ -18,7 +18,7 @@ Posterous.config = {
 # Edit below to configure
 # ---------------
 
-SITE = "markdownexport"		# SHORTNAMEOFYOURSITE.posterous.com
+SITE = "nancibonfim"		# SHORTNAMEOFYOURSITE.posterous.com
 EXPORT_PATH = "_posts"		# /path/to/export/folder -- local directory "_posts" by default
 IMAGE_PATH = "images"		# /path/to/images/folder -- local directory "images" by default
 IMAGE_REL_PATH = "/images"	# absolute path from webroot to images folder which is how images & other media will be linked to
@@ -151,7 +151,60 @@ EOS
 
     # encloses an HTML p tag within newlines
     html_doc.css("p").each {|par| par.replace("\n#{par.inner_html}\n")}
-    
+
+    # convert the headers
+    (1..6).each {|i|
+      html_doc.css("h#{i}").each {|header| header.replace("#{'#' * i} #{header.inner_html}") }
+    }
+
+    # convert unordered lists
+    html_doc.css("body > ul").each {|ul|
+      #remove newlines
+      ul.children.each {|item|
+        item.remove if !item.element? && item.content == "\n"
+      }
+
+      # for sub-lists
+      ul.css("ul").each {|sublist|
+        sublist.children.each {|item|
+          if item.element?
+            item.replace("    * #{item.inner_html}\n")
+          else
+            item.remove
+          end
+        }
+        sublist.replace("#{sublist.inner_html.chomp}")
+      }
+
+      ul.css("li").each {|li| li.replace("* #{li.inner_html}\n") }
+      ul.replace("#{ul.inner_html}")
+    }
+
+    #convert ordered lists
+    html_doc.css("body > ol").each {|ol|
+      #remove newlines
+      ol.children.each {|item|
+        item.remove if !item.element? && item.content == "\n"
+      }
+
+      # for sub-lists
+      ol.css("ol").each {|sublist|
+        index = 0
+        sublist.children.each {|item|
+          if item.element?
+            index += 1
+            item.replace("    #{index}. #{item.inner_html}\n")
+          else
+            item.remove
+          end
+        }
+        sublist.replace("#{sublist.inner_html.chomp}")
+      }
+
+      ol.css("li").each_with_index {|li, index| li.replace("#{index}. #{li.inner_html}\n") }
+      ol.replace("#{ol.inner_html.chomp}")
+    }
+
     videos = html_doc.css("div.p_video_embed")
     videos.map {|video|
       #TODO: change the divs content
