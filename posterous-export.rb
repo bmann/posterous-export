@@ -117,24 +117,32 @@ class Post
   end
 
   def save_media(path, uri)
-    response = fetch(uri)
-
-    raise LoadRessourceError unless [200,201].include? response.code.to_i
-
-    FileUtils.mkdir_p path unless File.exists? path
-    File.open("#{path}/#{uri.split("/")[-2..-1].join("_")}", "wb") { |f| f << response.body }
+     if uri.nil?
+         STDERR.puts "save_media: Variable uri is nil"
+     else
+         STDERR.puts "save_media: Variable uri is #{uri.inspect}"
+         response = fetch(uri)
+ 
+         raise LoadRessourceError unless [200,201].include? response.code.to_i
+ 
+         FileUtils.mkdir_p path unless File.exists? path
+         File.open("#{path}/#{uri.split("/")[-2..-1].join("_")}", "wb") { |f| f << response.body }
+     end
   end
 
   def fetch_images
+    STDERR.puts "fetching images"
     @images.each{|image| save_media(IMAGE_PATH, image) }
   end
 
   def fetch_audio
+    STDERR.puts "fetching audio"
     # NOTE: using only the images folder
     @audio_files.each{|audio| save_media(IMAGE_PATH, audio) }
   end
 
   def fetch_videos
+    STDERR.puts "fetching video"
     # NOTE: using only the images folder
     @videos.each{|video| save_media(IMAGE_PATH, video) }
   end
